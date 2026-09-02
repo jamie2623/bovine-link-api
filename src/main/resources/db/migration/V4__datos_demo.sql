@@ -1,31 +1,30 @@
 -- ============================================================
--- Seed de DEMO (opcional). NO lo corre Flyway (esta fuera de db/migration).
+-- Datos de DEMO. La corre Flyway al arrancar la app: no hay que
+-- ejecutar nada a mano.
 --
--- Uso:
---   & "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -h localhost -d bovine_db ^
---       -f src/main/resources/db/seed_demo.sql
+-- Usuarios: contrasena  demo1234
+-- El hash bcrypt va literal (Flyway lo lee del classpath y lo ejecuta por
+-- JDBC, no pasa por ninguna shell, asi que los '$' no se corrompen).
 --
--- Todos los usuarios demo tienen la contrasena:  demo1234
--- El hash bcrypt lo genera PostgreSQL con pgcrypto (crypt + bf), asi no depende
--- de pegar un hash a mano (que se corrompe facil por los '$').
--- Es idempotente: correrlo de nuevo REPARA los usuarios demo (deja password = demo1234).
+-- Guardas:
+--   - users: ON CONFLICT (email) DO UPDATE -> si ya existen, les corrige la clave
+--   - publicaciones / imagenes: solo si las tablas estan vacias
 -- ============================================================
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- ---------- usuarios ----------
+-- ---------- usuarios demo ----------
+-- $2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S  =  bcrypt('demo1234')
 INSERT INTO users (name, email, telefono, password, rol_id) VALUES
- ('Admin Demo',     'admin@bovinelink.test', '70000000', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'ADMIN')),
- ('Carlos Benitez', 'carlos@demo.test',      '70010001', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'USUARIO')),
- ('Jazmin Lopez',   'jazmin@demo.test',      '70010002', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'USUARIO')),
- ('Jamie Flores',   'jamie@demo.test',       '70010003', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'USUARIO'))
+ ('Admin Demo',     'admin@bovinelink.test', '70000000', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'ADMIN')),
+ ('Carlos Benitez', 'carlos@demo.test',      '70010001', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'USUARIO')),
+ ('Jazmin Lopez',   'jazmin@demo.test',      '70010002', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'USUARIO')),
+ ('Jamie Flores',   'jamie@demo.test',       '70010003', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'USUARIO'))
 ON CONFLICT (email) DO UPDATE SET
     name     = EXCLUDED.name,
     telefono = EXCLUDED.telefono,
     password = EXCLUDED.password,
     rol_id   = EXCLUDED.rol_id;
 
--- ---------- publicaciones ----------
+-- ---------- publicaciones demo (solo si no hay ninguna) ----------
 INSERT INTO publicaciones
     (titulo_venta, descripcion, ubicacion, precio, estado, vendido_en, created_at, updated_at, user_id, raza_id)
 SELECT
@@ -48,7 +47,7 @@ FROM (VALUES
 ) AS v(titulo, descripcion, ubicacion, precio, estado, fecha, email, raza)
 WHERE NOT EXISTS (SELECT 1 FROM publicaciones);
 
--- ---------- imagenes (una portada por publicacion) ----------
+-- ---------- imagenes (una portada por publicacion, solo si no hay ninguna) ----------
 INSERT INTO imagenes (url, foto_portada, publicacion_id)
 SELECT
     'https://placehold.co/600x400?text=' || replace(p.titulo_venta, ' ', '+'),
@@ -56,9 +55,3 @@ SELECT
     p.id
 FROM publicaciones p
 WHERE NOT EXISTS (SELECT 1 FROM imagenes);
-
--- Resumen
-SELECT
-    (SELECT count(*) FROM users)         AS users,
-    (SELECT count(*) FROM publicaciones) AS publicaciones,
-    (SELECT count(*) FROM imagenes)      AS imagenes;
