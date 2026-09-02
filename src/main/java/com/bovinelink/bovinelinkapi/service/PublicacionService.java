@@ -67,7 +67,14 @@ public class PublicacionService {
         publicacion.setDescripcion(request.getDescripcion());
         publicacion.setPrecio(request.getPrecio());
         publicacion.setUbicacion(request.getUbicacion());
-        publicacion.setEstado(request.getEstado() == null ? Publicacion.Estado.EN_VENTA : request.getEstado());
+        Publicacion.Estado nuevoEstado =
+                request.getEstado() == null ? Publicacion.Estado.EN_VENTA : request.getEstado();
+        publicacion.setEstado(nuevoEstado);
+        if (nuevoEstado == Publicacion.Estado.VENDIDO && publicacion.getVendidoEn() == null) {
+            publicacion.setVendidoEn(java.time.LocalDateTime.now());
+        } else if (nuevoEstado == Publicacion.Estado.EN_VENTA) {
+            publicacion.setVendidoEn(null);
+        }
         publicacion.setRaza(raza);
 
         publicacion.getFotos().clear();
@@ -95,7 +102,7 @@ public class PublicacionService {
 
     private void validarPropietario(Publicacion publicacion, Usuario usuario) {
         boolean esPropietario = publicacion.getUsuario().getId().equals(usuario.getId());
-        boolean esAdmin = usuario.getRol() == Usuario.Rol.ADMIN;
+        boolean esAdmin = com.bovinelink.bovinelinkapi.entity.Rol.ADMIN.equals(usuario.getRol().getName());
 
         if (!esPropietario && !esAdmin) {
             throw new IllegalArgumentException("No puedes modificar esta publicacion");
