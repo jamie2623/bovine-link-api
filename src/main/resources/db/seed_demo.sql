@@ -6,16 +6,24 @@
 --       -f src/main/resources/db/seed_demo.sql
 --
 -- Todos los usuarios demo tienen la contrasena:  demo1234
--- Es idempotente: se puede correr varias veces sin duplicar.
+-- El hash bcrypt lo genera PostgreSQL con pgcrypto (crypt + bf), asi no depende
+-- de pegar un hash a mano (que se corrompe facil por los '$').
+-- Es idempotente: correrlo de nuevo REPARA los usuarios demo (deja password = demo1234).
 -- ============================================================
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- ---------- usuarios ----------
 INSERT INTO users (name, email, telefono, password, rol_id) VALUES
- ('Admin Demo',     'admin@bovinelink.test', '70000000', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'ADMIN')),
- ('Carlos Benitez', 'carlos@demo.test',      '70010001', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'USUARIO')),
- ('Jazmin Lopez',   'jazmin@demo.test',      '70010002', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'USUARIO')),
- ('Jamie Flores',   'jamie@demo.test',       '70010003', '$2a$10$I3zLcL.XF/RrdGvT.BIkfuA3Nr2xRphSm1KrrGhdQ.BLT5Muv2c1S', (SELECT id FROM roles WHERE name = 'USUARIO'))
-ON CONFLICT (email) DO NOTHING;
+ ('Admin Demo',     'admin@bovinelink.test', '70000000', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'ADMIN')),
+ ('Carlos Benitez', 'carlos@demo.test',      '70010001', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'USUARIO')),
+ ('Jazmin Lopez',   'jazmin@demo.test',      '70010002', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'USUARIO')),
+ ('Jamie Flores',   'jamie@demo.test',       '70010003', crypt('demo1234', gen_salt('bf', 10)), (SELECT id FROM roles WHERE name = 'USUARIO'))
+ON CONFLICT (email) DO UPDATE SET
+    name     = EXCLUDED.name,
+    telefono = EXCLUDED.telefono,
+    password = EXCLUDED.password,
+    rol_id   = EXCLUDED.rol_id;
 
 -- ---------- publicaciones ----------
 INSERT INTO publicaciones
