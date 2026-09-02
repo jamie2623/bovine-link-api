@@ -21,7 +21,7 @@ public class Raza {
     private Long id;
 
     @NotBlank(message = "El nombre es obligatorio")
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 255)
     private String nombre;
 
     @NotNull(message = "La categoria es obligatoria")
