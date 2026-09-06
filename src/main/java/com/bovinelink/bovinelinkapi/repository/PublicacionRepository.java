@@ -4,4 +4,6 @@ import com.bovinelink.bovinelinkapi.entity.Publicacion;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PublicacionRepository extends JpaRepository<Publicacion, Long> {
+
+    java.util.List<Publicacion> findByUsuarioIdOrderByFechaPublicacionDesc(Long usuarioId);
 }

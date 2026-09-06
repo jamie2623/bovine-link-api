@@ -28,6 +28,14 @@ public class PublicacionService {
                 .toList();
     }
 
+    /** Publicaciones del usuario autenticado, mas recientes primero. */
+    @Transactional(readOnly = true)
+    public List<PublicacionResponse> listarMias(Usuario usuario) {
+        return publicacionRepository.findByUsuarioIdOrderByFechaPublicacionDesc(usuario.getId()).stream()
+                .map(PublicacionResponse::fromEntity)
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public PublicacionResponse obtenerPorId(Long id) {
         return PublicacionResponse.fromEntity(buscarPorId(id));
@@ -102,7 +110,8 @@ public class PublicacionService {
 
     private void validarPropietario(Publicacion publicacion, Usuario usuario) {
         boolean esPropietario = publicacion.getUsuario().getId().equals(usuario.getId());
-        boolean esAdmin = com.bovinelink.bovinelinkapi.entity.Rol.ADMIN.equals(usuario.getRol().getName());
+        boolean esAdmin = usuario.getRol() != null
+                && com.bovinelink.bovinelinkapi.entity.Rol.ADMIN.equals(usuario.getRol().getName());
 
         if (!esPropietario && !esAdmin) {
             throw new IllegalArgumentException("No puedes modificar esta publicacion");
