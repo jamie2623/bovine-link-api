@@ -21,6 +21,7 @@ public class PublicacionResponse {
     private Publicacion.Estado estado;
     private Long usuarioId;
     private String usuarioNombre;
+    private String usuarioTelefono;
     private Long razaId;
     private String razaNombre;
     private LocalDateTime fechaPublicacion;
@@ -36,6 +37,7 @@ public class PublicacionResponse {
                 publicacion.getEstado(),
                 publicacion.getUsuario().getId(),
                 publicacion.getUsuario().getNombre(),
+                publicacion.getUsuario().getTelefono(),
                 publicacion.getRaza().getId(),
                 publicacion.getRaza().getNombre(),
                 publicacion.getFechaPublicacion(),

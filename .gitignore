@@ -37,3 +37,6 @@ application-local.properties
 application-local.yml
 src/main/resources/application-local.properties
 src/main/resources/application-local.yml
+
+### Fotos subidas (no versionar) ###
+/uploads/
