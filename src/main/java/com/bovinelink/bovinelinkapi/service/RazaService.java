@@ -3,6 +3,7 @@ package com.bovinelink.bovinelinkapi.service;
 import com.bovinelink.bovinelinkapi.entity.Raza;
 import com.bovinelink.bovinelinkapi.repository.RazaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +15,9 @@ public class RazaService {
     private final RazaRepository razaRepository;
 
     public List<Raza> listar() {
-        return razaRepository.findAll();
+        // Orden por id: la migracion V8 asigna los ids en el orden en que
+        // deben verse en el sidebar (por categoria y dentro de cada una).
+        return razaRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public Raza obtenerPorId(Long id) {
